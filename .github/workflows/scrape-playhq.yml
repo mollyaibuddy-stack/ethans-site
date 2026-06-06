@@ -1,0 +1,26 @@
+﻿name: Scrape PlayHQ Daily
+
+on:
+  schedule:
+    - cron: "0 20 * * *"  # 6am AEST (8pm UTC) daily
+  workflow_dispatch:  # manual trigger
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - run: npx playwright install chromium
+      - run: npx playwright install-deps chromium
+      - run: node scripts/scrape-playhq.mjs
+      - name: Commit updated data
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add public/data/playhq.json
+          git diff --staged --quiet || git commit -m "Auto-update PlayHQ data"
+          git push

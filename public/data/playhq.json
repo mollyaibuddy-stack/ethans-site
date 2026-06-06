@@ -1,0 +1,69 @@
+﻿{
+    "fixtures":  [
+                     {
+                         "round":  1,
+                         "date":  "Saturday, 02 May 2026",
+                         "opponent":  "Collingwood U13 Boys 08",
+                         "ourScore":  20,
+                         "theirScore":  29,
+                         "venue":  "Manningham Templestowe Leisure Centre / Court 1"
+                     },
+                     {
+                         "round":  2,
+                         "date":  "Saturday, 09 May 2026",
+                         "opponent":  "Eltham U13 Boys 36",
+                         "ourScore":  53,
+                         "theirScore":  16,
+                         "venue":  "Manningham Templestowe Leisure Centre / Court 2"
+                     },
+                     {
+                         "round":  3,
+                         "date":  "Saturday, 16 May 2026",
+                         "opponent":  "Blackburn U13 Boys 14",
+                         "ourScore":  62,
+                         "theirScore":  14,
+                         "venue":  "Blackburn Primary School / Court 1"
+                     },
+                     {
+                         "round":  4,
+                         "date":  "Saturday, 23 May 2026",
+                         "opponent":  "Eltham U13 Boys 21",
+                         "ourScore":  29,
+                         "theirScore":  15,
+                         "venue":  "Manningham Templestowe Leisure Centre / Court 2"
+                     },
+                     {
+                         "round":  5,
+                         "date":  "Saturday, 30 May 2026",
+                         "opponent":  "Balwyn U13 Boys 06",
+                         "ourScore":  45,
+                         "theirScore":  21,
+                         "venue":  "Balwyn High School / Court 2"
+                     },
+                     {
+                         "round":  6,
+                         "date":  "Saturday, 13 June 2026",
+                         "opponent":  "Eltham U13 Boys 20",
+                         "ourScore":  null,
+                         "theirScore":  null,
+                         "venue":  "Eltham Leisure Centre / Court 1"
+                     }
+                 ],
+    "stats":  {
+                  "career":  {
+                                 "games":  153,
+                                 "pts":  434,
+                                 "onePt":  46,
+                                 "twoPt":  194,
+                                 "fouls":  148
+                             },
+                  "season":  {
+                                 "games":  4,
+                                 "pts":  52,
+                                 "onePt":  2,
+                                 "twoPt":  25,
+                                 "fouls":  6
+                             }
+              },
+    "updated":  "2026-06-06T00:00:00Z"
+}

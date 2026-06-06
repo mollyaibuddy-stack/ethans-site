@@ -1,0 +1,384 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ethan's Website</title>
+<style>
+:root { --bg: #fff; --fg: #111; --muted: #666; --border: #e0e0e0; --surface: #f5f5f5; --positive: #22c55e; --negative: #ef4444; }
+@media (prefers-color-scheme: dark) { :root { --bg: #0a0a0a; --fg: #f5f5f5; --muted: #999; --border: #2a2a2a; --surface: #1a1a1a; } }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--fg); font-family: "Inter", -apple-system, sans-serif; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+a { color: var(--fg); text-decoration: none; border-bottom: 1px solid var(--border); }
+a:hover { border-bottom-color: var(--fg); }
+.navbar { display: flex; align-items: center; justify-content: space-between; padding: 1rem 2rem; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--bg); z-index: 100; }
+.navbar-logo { font-size: 1.25rem; font-weight: 700; border: none !important; }
+.nav-links { display: flex; gap: 1.5rem; align-items: center; }
+.nav-links a { border: none; font-size: 0.9rem; color: var(--muted); }
+.nav-links a:hover { color: var(--fg); }
+.page { max-width: 800px; margin: 0 auto; padding: 2rem 1.5rem; display: none; }
+.page.active { display: block; }
+.hero { padding: 3rem 0 2rem; text-align: center; }
+.hero h1 { font-size: 3rem; font-weight: 800; margin-bottom: 1rem; }
+.lead { font-size: 1.1rem; color: var(--muted); max-width: 500px; margin: 0 auto 2rem; }
+.hero-links { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+.hero-links a { padding: 0.75rem 1.5rem; border: 1px solid var(--border); border-radius: 0.5rem; font-weight: 500; }
+.hero-links a:first-child { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+h1 { font-size: 2rem; font-weight: 700; margin-bottom: 1rem; }
+h2 { font-size: 1.25rem; font-weight: 600; margin: 1.5rem 0 0.75rem; }
+.section { padding: 1.5rem 0; border-bottom: 1px solid var(--border); }
+.muted { color: var(--muted); font-size: 0.95rem; }
+.stats-grid { display: flex; flex-wrap: wrap; gap: 1rem; margin: 1rem 0; }
+.stat-card { text-align: center; padding: 1.25rem 0.75rem; border: 1px solid var(--border); border-radius: 0.5rem; min-width: 100px; flex: 1; }
+.stat-number { display: block; font-size: 1.75rem; font-weight: 800; }
+.stat-label { display: block; font-size: 0.8rem; color: var(--muted); margin-top: 0.25rem; }
+.fixture-card { overflow-x: auto; margin-top: 1rem; }
+.fixture-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.fixture-table th { text-align: left; padding: 0.5rem 0.75rem; border-bottom: 2px solid var(--border); color: var(--muted); font-weight: 600; }
+.fixture-table td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); }
+.facts { list-style: none; }
+.facts li { padding: 0.25rem 0; }
+.facts li::before { content: "- "; color: var(--muted); }
+
+/* PIN page */
+.pin-page { text-align: center; max-width: 400px; margin: 0 auto; }
+.pin-form { display: flex; flex-direction: column; gap: 1rem; align-items: center; margin-top: 2rem; }
+.pin-input { font-size: 2rem; width: 180px; text-align: center; padding: 0.75rem; letter-spacing: 0.5em; background: var(--surface); border: 1px solid var(--border); color: var(--fg); border-radius: 0.5rem; }
+.pin-input:focus { outline: none; border-color: var(--fg); }
+.pin-form button { padding: 0.75rem 2rem; background: var(--fg); color: var(--bg); border: none; border-radius: 0.5rem; font-size: 1rem; font-weight: 600; cursor: pointer; }
+.pin-form button:disabled { opacity: 0.5; cursor: not-allowed; }
+.error-text { color: var(--negative); font-size: 0.9rem; }
+.error-text.positive { color: var(--positive); }
+
+/* Private tabs */
+.private-tabs { display: flex; gap: 0; margin-bottom: 2rem; border-bottom: 2px solid var(--border); }
+.private-tab { padding: 0.75rem 1.5rem; background: none; border: none; font-size: 0.95rem; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; font-family: inherit; }
+.private-tab.active { color: var(--fg); border-bottom-color: var(--fg); }
+.private-panel { display: none; }
+.private-panel.active { display: block; }
+
+/* Forms */
+.form-row { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+.form-row input, .form-row select { padding: 0.5rem 0.75rem; background: var(--surface); border: 1px solid var(--border); color: var(--fg); border-radius: 0.375rem; font-family: inherit; }
+.form-row button, .btn { padding: 0.5rem 1rem; background: var(--fg); color: var(--bg); border: none; border-radius: 0.375rem; cursor: pointer; font-weight: 500; font-family: inherit; }
+.form-row button:hover, .btn:hover { opacity: 0.8; }
+.entry-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.entry-table th { text-align: left; padding: 0.5rem; border-bottom: 2px solid var(--border); color: var(--muted); }
+.entry-table td { padding: 0.5rem; border-bottom: 1px solid var(--border); }
+.pos { color: var(--positive); }
+.neg { color: var(--negative); }
+.balance { font-size: 1.75rem; font-weight: 700; margin-bottom: 1.5rem; }
+
+/* Checklist */
+.bonus-banner { background: var(--positive); color: #000; padding: 0.75rem 1rem; border-radius: 0.5rem; font-weight: 600; text-align: center; margin-bottom: 1.5rem; }
+.task-list { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.5rem; }
+.task-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; border: 1px solid var(--border); border-radius: 0.5rem; }
+.task-item.done { opacity: 0.4; }
+.task-item.done .task-label { text-decoration: line-through; }
+.task-label { flex: 1; }
+.task-remove { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 1rem; padding: 0.25rem 0.5rem; }
+
+/* Editor */
+.editor-pages { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-top: 1.5rem; }
+.editor-card { padding: 1rem; border: 1px solid var(--border); border-radius: 0.5rem; }
+.editor-card strong { display: block; margin-bottom: 0.25rem; }
+.editor-card textarea { width: 100%; margin: 0.5rem 0; padding: 0.5rem; background: var(--surface); border: 1px solid var(--border); color: var(--fg); border-radius: 0.375rem; resize: vertical; font-family: inherit; min-height: 80px; }
+.editor-card button { padding: 0.5rem 1rem; background: var(--fg); color: var(--bg); border: none; border-radius: 0.375rem; cursor: pointer; font-weight: 500; }
+.back-link { display: inline-block; margin-bottom: 1rem; font-size: 0.9rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<nav class="navbar">
+  <a href="#" class="navbar-logo" onclick="showPage('home')">Ethan</a>
+  <div class="nav-links">
+    <a href="#" onclick="showPage('basketball')">Basketball</a>
+    <a href="#" onclick="showPrivate()">Private</a>
+  </div>
+</nav>
+
+<!-- HOME -->
+<div id="page-home" class="page active">
+  <section class="hero">
+    <h1>Hey, I'm Ethan</h1>
+    <p class="lead">Welcome to my corner of the internet. I play basketball for the Bulleen Boomers, love building things, and I'm always learning something new.</p>
+    <div class="hero-links">
+      <a href="#" onclick="showPage('basketball')">See my games</a>
+    </div>
+  </section>
+  <section class="section">
+    <h2>Quick facts</h2>
+    <ul class="facts">
+      <li>U13 Boys basketball — Bulleen Boomers</li>
+      <li>I like coding, gaming, and art</li>
+      <li>Building this website with my dad</li>
+    </ul>
+  </section>
+</div>
+
+<!-- BASKETBALL -->
+<div id="page-basketball" class="page">
+  <h1>Basketball</h1>
+  <section class="section">
+    <h2>My Team</h2>
+    <p><strong>Club:</strong> Bulleen Boomers</p>
+    <p><strong>Team:</strong> Boys U13 — Team 19</p>
+    <p><strong>League:</strong> EDJBA Winter 2026</p>
+  </section>
+  <section class="section">
+    <h2>Team Fixtures</h2>
+    <div class="fixture-card">
+      <table class="fixture-table">
+        <thead><tr><th>R</th><th>Date</th><th>Opponent</th><th>Score</th><th>Result</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>May 2</td><td>Collingwood U13 08</td><td>20-29</td><td>Lost by 9</td></tr>
+          <tr><td>2</td><td>May 9</td><td>Eltham U13 36</td><td>53-16</td><td>Won by 37</td></tr>
+          <tr><td>3</td><td>May 16</td><td>Blackburn U13 14</td><td>62-14</td><td>Won by 48</td></tr>
+          <tr><td>4</td><td>May 23</td><td>Eltham U13 21</td><td>29-15</td><td>Won by 14</td></tr>
+          <tr><td>5</td><td>May 30</td><td>Balwyn U13 06</td><td>45-21</td><td>Won by 24</td></tr>
+          <tr><td>6</td><td>Jun 13</td><td>Eltham U13 20</td><td colspan="2">Upcoming</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+  <section class="section">
+    <h2>Ethan's Stats — Winter 2026</h2>
+    <div class="stats-grid">
+      <div class="stat-card"><span class="stat-number">4</span><span class="stat-label">Games</span></div>
+      <div class="stat-card"><span class="stat-number">52</span><span class="stat-label">Total Points</span></div>
+      <div class="stat-card"><span class="stat-number">13.0</span><span class="stat-label">PPG</span></div>
+      <div class="stat-card"><span class="stat-number">25</span><span class="stat-label">2PT</span></div>
+      <div class="stat-card"><span class="stat-number">2</span><span class="stat-label">1PT</span></div>
+      <div class="stat-card"><span class="stat-number">6</span><span class="stat-label">Fouls</span></div>
+    </div>
+  </section>
+  <section class="section">
+    <h2>Career</h2>
+    <div class="stats-grid">
+      <div class="stat-card"><span class="stat-number">153</span><span class="stat-label">Games</span></div>
+      <div class="stat-card"><span class="stat-number">434</span><span class="stat-label">Points</span></div>
+      <div class="stat-card"><span class="stat-number">194</span><span class="stat-label">2PT</span></div>
+      <div class="stat-card"><span class="stat-number">46</span><span class="stat-label">1PT</span></div>
+      <div class="stat-card"><span class="stat-number">148</span><span class="stat-label">Fouls</span></div>
+    </div>
+  </section>
+</div>
+
+<!-- PRIVATE: PIN -->
+<div id="page-private-pin" class="page">
+  <div class="pin-page">
+    <h1>Private Area</h1>
+    <p class="muted">Enter your PIN to continue</p>
+    <div class="pin-form">
+      <input type="password" maxlength="4" inputmode="numeric" pattern="[0-9]{4}" placeholder="••••" class="pin-input" id="pin-input" autocomplete="off">
+      <button onclick="checkPin()">Enter</button>
+      <p class="error-text" id="pin-error"></p>
+    </div>
+    <p style="margin-top:1.5rem"><a href="#" onclick="showPage('home')" style="color:var(--muted);border:none;font-size:0.9rem">← Back to home</a></p>
+  </div>
+</div>
+
+<!-- PRIVATE: DASHBOARD -->
+<div id="page-private" class="page">
+  <a href="#" onclick="showPage('home')" class="back-link">← Back to home</a>
+  <h1>Private Area</h1>
+  <div class="private-tabs">
+    <button class="private-tab active" onclick="switchPrivateTab('money', this)">Money Tracker</button>
+    <button class="private-tab" onclick="switchPrivateTab('checklist', this)">Daily Checklist</button>
+    <button class="private-tab" onclick="switchPrivateTab('editor', this)">Page Editor</button>
+  </div>
+
+  <!-- Money Tracker -->
+  <div class="private-panel active" id="panel-money">
+    <div class="balance" id="balance-display">Balance: $0.00</div>
+    <div class="form-row">
+      <input id="m-desc" placeholder="What was it for?">
+      <input id="m-amount" type="number" step="0.01" placeholder="Amount" style="width:100px">
+      <select id="m-type"><option value="income">Income</option><option value="expense">Expense</option></select>
+      <button onclick="addMoney()">Add</button>
+    </div>
+    <table class="entry-table">
+      <thead><tr><th>Date</th><th>Description</th><th>Amount</th><th>Type</th></tr></thead>
+      <tbody id="money-entries"></tbody>
+    </table>
+  </div>
+
+  <!-- Checklist -->
+  <div class="private-panel" id="panel-checklist">
+    <p class="muted" id="checklist-date"></p>
+    <div class="bonus-banner" id="bonus-banner" style="display:none">🎉 All done! +$20 added to your income</div>
+    <div class="task-list" id="task-list"></div>
+    <div class="form-row">
+      <input id="t-new" placeholder="Add a new task..." style="flex:1">
+      <button onclick="addTask()">Add</button>
+    </div>
+    <p class="muted" style="margin-top:1rem" id="task-progress"></p>
+    <div class="section" style="margin-top:2rem" id="history-section" hidden>
+      <h2>History</h2>
+      <div id="history-list"></div>
+    </div>
+  </div>
+
+  <!-- Editor -->
+  <div class="private-panel" id="panel-editor">
+    <p class="muted">Update your public pages below.</p>
+    <div class="editor-pages" id="editor-pages"></div>
+  </div>
+</div>
+
+<script>
+// Navigation
+function showPage(id) { document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); document.getElementById('page-' + id).classList.add('active'); }
+function showPrivate() { showPage('private-pin'); document.getElementById('pin-input').focus(); document.getElementById('pin-error').textContent = ''; }
+function checkPin() {
+  var pin = document.getElementById('pin-input').value;
+  if (pin === '1234') { showPage('private'); loadPrivateData(); document.getElementById('pin-error').textContent = ''; }
+  else { document.getElementById('pin-error').textContent = 'Wrong PIN, try again'; document.getElementById('pin-input').value = ''; }
+}
+function switchPrivateTab(name, btn) {
+  document.querySelectorAll('.private-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.private-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel-' + name).classList.add('active');
+  if (name === 'money') renderMoney();
+  if (name === 'checklist') renderChecklist();
+  if (name === 'editor') renderEditor();
+}
+
+// Pin input Enter key
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('pin-input').addEventListener('keydown', function(e) { if (e.key === 'Enter') checkPin(); });
+});
+
+// --- MONEY TRACKER ---
+var moneyEntries = JSON.parse(localStorage.getItem('ethan-money') || '[]');
+function addMoney() {
+  var d = document.getElementById('m-desc').value, a = document.getElementById('m-amount').value, t = document.getElementById('m-type').value;
+  if (!d || !a) return;
+  moneyEntries.push({ id: Date.now(), date: new Date().toLocaleDateString('en-AU'), desc: d, amount: parseFloat(a), type: t });
+  localStorage.setItem('ethan-money', JSON.stringify(moneyEntries));
+  document.getElementById('m-desc').value = ''; document.getElementById('m-amount').value = '';
+  renderMoney();
+}
+function renderMoney() {
+  var bal = moneyEntries.reduce(function(sum, e) { return e.type === 'income' ? sum + e.amount : sum - e.amount; }, 0);
+  var bd = document.getElementById('balance-display');
+  bd.textContent = 'Balance: $' + bal.toFixed(2);
+  bd.className = 'balance ' + (bal >= 0 ? 'pos' : 'neg');
+  var html = '';
+  moneyEntries.slice().reverse().forEach(function(e) {
+    html += '<tr><td>' + e.date + '</td><td>' + e.desc + '</td><td class="' + (e.type === 'income' ? 'pos' : 'neg') + '">' + (e.type === 'income' ? '+' : '-') + '$' + e.amount.toFixed(2) + '</td><td>' + e.type + '</td></tr>';
+  });
+  document.getElementById('money-entries').innerHTML = html;
+}
+
+// --- CHECKLIST ---
+var DEFAULT_TASKS = [
+  { id: 1, label: 'Make my bed' },
+  { id: 2, label: 'Practice basketball' },
+  { id: 3, label: 'Finish homework' },
+  { id: 4, label: 'Read for 20 minutes' },
+  { id: 5, label: 'Tidy my room' }
+];
+function todayStr() { return new Date().toLocaleDateString('en-AU'); }
+function getChecklistDate() { return localStorage.getItem('ethan-checklist-date') || todayStr(); }
+function setChecklistDate(d) { localStorage.setItem('ethan-checklist-date', d); }
+
+var tasks = JSON.parse(localStorage.getItem('ethan-tasks') || JSON.stringify(DEFAULT_TASKS));
+var history = JSON.parse(localStorage.getItem('ethan-checklist-history') || '[]');
+var bonusAdded = localStorage.getItem('ethan-bonus') === 'true';
+
+// Reset if it's a new day
+if (getChecklistDate() !== todayStr()) {
+  // Save yesterday's state to history if any tasks were done
+  var doneCount = tasks.filter(function(t) { return t.done; }).length;
+  if (doneCount > 0) {
+    history.push({ date: getChecklistDate(), tasks: JSON.parse(JSON.stringify(tasks)), allDone: tasks.every(function(t) { return t.done; }) });
+    localStorage.setItem('ethan-checklist-history', JSON.stringify(history));
+  }
+  // Reset for today
+  tasks = DEFAULT_TASKS.map(function(t) { return { id: t.id, label: t.label, done: false }; });
+  bonusAdded = false;
+  localStorage.setItem('ethan-tasks', JSON.stringify(tasks));
+  localStorage.setItem('ethan-bonus', 'false');
+  setChecklistDate(todayStr());
+}
+
+function renderChecklist() {
+  document.getElementById('checklist-date').textContent = 'Today: ' + todayStr();
+
+  var html = '', doneCount = 0;
+  tasks.forEach(function(t) {
+    if (t.done) doneCount++;
+    html += '<label class="task-item' + (t.done ? ' done' : '') + '"><input type="checkbox"' + (t.done ? ' checked' : '') + ' onchange="toggleTask(' + t.id + ')"><span class="task-label">' + t.label + '</span><button class="task-remove" onclick="removeTask(' + t.id + ')">x</button></label>';
+  });
+  document.getElementById('task-list').innerHTML = html;
+  document.getElementById('task-progress').textContent = doneCount + ' of ' + tasks.length + ' tasks done';
+
+  var allDone = tasks.length > 0 && tasks.every(function(t) { return t.done; });
+  if (allDone && !bonusAdded) {
+    bonusAdded = true;
+    localStorage.setItem('ethan-bonus', 'true');
+    moneyEntries.push({ id: Date.now(), date: todayStr(), desc: 'Daily checklist bonus', amount: 20, type: 'income' });
+    localStorage.setItem('ethan-money', JSON.stringify(moneyEntries));
+  }
+  if (!allDone) { bonusAdded = false; localStorage.setItem('ethan-bonus', 'false'); }
+  document.getElementById('bonus-banner').style.display = allDone ? 'block' : 'none';
+
+  // Render history
+  var histSection = document.getElementById('history-section');
+  if (history.length > 0) {
+    histSection.hidden = false;
+    var histHtml = '';
+    history.slice().reverse().forEach(function(h) {
+      var check = h.allDone ? ' ✅' : '';
+      histHtml += '<p class="muted" style="margin-bottom:0.25rem"><strong>' + h.date + '</strong>' + check + '</p>';
+      h.tasks.forEach(function(t) {
+        histHtml += '<span class="muted" style="font-size:0.85rem;margin-left:1rem;' + (t.done ? '' : 'opacity:0.4') + '">' + (t.done ? '✓' : '✗') + ' ' + t.label + '</span><br>';
+      });
+    });
+    document.getElementById('history-list').innerHTML = histHtml;
+  }
+}
+function toggleTask(id) {
+  tasks.forEach(function(t) { if (t.id === id) t.done = !t.done; });
+  localStorage.setItem('ethan-tasks', JSON.stringify(tasks));
+  renderChecklist();
+}
+function addTask() {
+  var inp = document.getElementById('t-new'), label = inp.value.trim();
+  if (!label) return;
+  tasks.push({ id: Date.now(), label: label, done: false });
+  localStorage.setItem('ethan-tasks', JSON.stringify(tasks));
+  inp.value = '';
+  renderChecklist();
+}
+function removeTask(id) {
+  tasks = tasks.filter(function(t) { return t.id !== id; });
+  localStorage.setItem('ethan-tasks', JSON.stringify(tasks));
+  renderChecklist();
+}
+
+// --- EDITOR ---
+var pageContent = JSON.parse(localStorage.getItem('ethan-content') || '{}');
+var pageNames = ['about', 'hobbies', 'projects', 'gallery', 'blog'];
+function renderEditor() {
+  var html = '';
+  pageNames.forEach(function(p) {
+    html += '<div class="editor-card"><strong>' + p[0].toUpperCase() + p.slice(1) + '</strong><p class="muted">Edit content</p><textarea id="ed-' + p + '">' + (pageContent[p] || '') + '</textarea><button onclick="savePage(\'' + p + '\')">Save</button><p class="muted" style="margin-top:0.25rem;font-size:0.75rem" id="ed-msg-' + p + '"></p></div>';
+  });
+  document.getElementById('editor-pages').innerHTML = html;
+}
+function savePage(page) {
+  var val = document.getElementById('ed-' + page).value;
+  pageContent[page] = val;
+  localStorage.setItem('ethan-content', JSON.stringify(pageContent));
+  var el = document.getElementById('ed-msg-' + page);
+  el.textContent = 'Saved!';
+  el.className = 'error-text positive';
+  setTimeout(function() { el.textContent = ''; }, 1500);
+}
+function loadPrivateData() { renderMoney(); renderChecklist(); renderEditor(); }
+</script>
+</body>
+</html>
+
