@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import PrivateTabGuard from "@/components/PrivateTabGuard";
 import { ENTRY_DRAFT_PAGES, createDraftEntry, updateDraftEntry } from "@/lib/private-store.mjs";
 
@@ -9,6 +9,12 @@ interface DraftEntry {
   title: string;
   text: string;
   image: string;
+}
+
+interface Task {
+  id: string;
+  label: string;
+  done: boolean;
 }
 
 type EntryDrafts = Record<string, DraftEntry[]>;
@@ -46,33 +52,42 @@ export default function Editor() {
     projects: [],
     blog: [],
   });
+  const [checklistTasks, setChecklistTasks] = useState<Task[]>([]);
+  const [newChecklistTask, setNewChecklistTask] = useState("");
   const [savingPage, setSavingPage] = useState("");
+  const [savingChecklist, setSavingChecklist] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
 
-    async function loadDrafts() {
+    async function loadEditorData() {
       try {
-        const response = await fetch("/api/private/editor");
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || "Could not load drafts.");
+        const [draftResponse, checklistResponse] = await Promise.all([
+          fetch("/api/private/editor"),
+          fetch("/api/private/checklist"),
+        ]);
+        const draftData = await draftResponse.json();
+        const checklistData = await checklistResponse.json();
+        if (!draftResponse.ok) throw new Error(draftData.error || "Could not load drafts.");
+        if (!checklistResponse.ok) throw new Error(checklistData.error || "Could not load checklist.");
         if (!cancelled) {
-          const nextDrafts = data.drafts || {};
+          const nextDrafts = draftData.drafts || {};
           setDrafts(nextDrafts);
           setEntryDrafts({
             hobbies: parseEntryDraft(nextDrafts.hobbies),
             projects: parseEntryDraft(nextDrafts.projects),
             blog: parseEntryDraft(nextDrafts.blog),
           });
+          setChecklistTasks(checklistData.tasks || []);
         }
       } catch (loadError) {
         if (!cancelled) {
-          setError(loadError instanceof Error ? loadError.message : "Could not load drafts.");
+          setError(loadError instanceof Error ? loadError.message : "Could not load editor data.");
         }
       }
     }
 
-    loadDrafts();
+    loadEditorData();
     return () => {
       cancelled = true;
     };
@@ -146,6 +161,41 @@ export default function Editor() {
     reader.readAsDataURL(file);
   };
 
+  const saveChecklistAction = async (payload: Record<string, unknown>) => {
+    setSavingChecklist(true);
+    setError("");
+    setMessage("");
+
+    try {
+      const response = await fetch("/api/private/checklist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not save checklist.");
+
+      setChecklistTasks(data.tasks || []);
+      setMessage("Checklist tasks saved.");
+    } catch (saveError) {
+      setError(saveError instanceof Error ? saveError.message : "Could not save checklist.");
+    } finally {
+      setSavingChecklist(false);
+    }
+  };
+
+  const addChecklistTask = (event: FormEvent) => {
+    event.preventDefault();
+    const label = newChecklistTask.trim();
+    if (!label) return;
+    saveChecklistAction({ action: "add", label });
+    setNewChecklistTask("");
+  };
+
+  const removeChecklistTask = (id: string) => {
+    saveChecklistAction({ action: "remove", id });
+  };
+
   return (
     <main className="page">
       <PrivateTabGuard />
@@ -169,6 +219,42 @@ export default function Editor() {
             </button>
           </div>
         ))}
+
+        <div className="editor-card editor-card-wide">
+          <div className="editor-card-header">
+            <div>
+              <strong>Checklist Tasks</strong>
+              <p>Manage daily checklist tasks here</p>
+            </div>
+          </div>
+
+          <div className="editor-task-list">
+            {checklistTasks.map(task => (
+              <div key={task.id} className="editor-task-item">
+                <span>{task.label}</span>
+                <button
+                  type="button"
+                  onClick={() => removeChecklistTask(task.id)}
+                  disabled={savingChecklist}
+                >
+                  Remove Task
+                </button>
+              </div>
+            ))}
+            {checklistTasks.length === 0 && <p className="muted">No checklist tasks yet.</p>}
+          </div>
+
+          <form onSubmit={addChecklistTask} className="editor-task-form">
+            <input
+              value={newChecklistTask}
+              onChange={event => setNewChecklistTask(event.target.value)}
+              placeholder="New checklist task"
+            />
+            <button type="submit" disabled={savingChecklist}>
+              {savingChecklist ? "Saving..." : "Add Task"}
+            </button>
+          </form>
+        </div>
 
         {entryPages.map(page => (
           <div key={page} className="editor-card editor-card-wide">

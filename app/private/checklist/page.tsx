@@ -12,7 +12,6 @@ interface Task {
 
 export default function Checklist() {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [newTask, setNewTask] = useState("");
   const [dateKey, setDateKey] = useState("");
   const [bonusAdded, setBonusAdded] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -78,17 +77,6 @@ export default function Checklist() {
     saveChecklistAction({ action: "toggle", id, done: !task.done });
   };
 
-  const addTask = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newTask.trim()) return;
-    saveChecklistAction({ action: "add", label: newTask.trim() });
-    setNewTask("");
-  };
-
-  const removeTask = (id: string) => {
-    saveChecklistAction({ action: "remove", id });
-  };
-
   return (
     <main className="page">
       <PrivateTabGuard />
@@ -105,27 +93,19 @@ export default function Checklist() {
       <div className="task-list">
         {tasks.map(task => (
           <label key={task.id} className={"task-item" + (task.done ? " done" : "")}>
-            <input type="checkbox" checked={task.done} disabled={saving} onChange={() => toggle(task.id)} />
-            <span className="task-label">{task.label}</span>
-            <button
-              onClick={event => {
-                event.preventDefault();
-                removeTask(task.id);
-              }}
-              className="task-remove"
-              aria-label="Remove task"
+            <input
+              className="task-checkbox"
+              type="checkbox"
+              checked={task.done}
               disabled={saving}
-            >
-              x
-            </button>
+              onChange={() => toggle(task.id)}
+            />
+            <span className="task-label">{task.label}</span>
           </label>
         ))}
       </div>
 
-      <form onSubmit={addTask} className="add-task-form">
-        <input value={newTask} onChange={e => setNewTask(e.target.value)} placeholder="Add a new task..." />
-        <button type="submit" disabled={saving}>{saving ? "Saving..." : "Add"}</button>
-      </form>
+      <a href="/private/editor" className="checklist-editor-link">Edit tasks in Page Editor</a>
 
       <p className="muted task-info">
         {tasks.filter(t => t.done).length} of {tasks.length} tasks done{dateKey ? ` for ${dateKey}` : ""}
