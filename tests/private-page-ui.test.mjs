@@ -15,3 +15,10 @@ test("Private landing page restores an existing authenticated session", () => {
   assert.match(privatePageSource, /fetch\("\/api\/private\/session"\)/);
   assert.match(privatePageSource, /data\?\.authenticated/);
 });
+
+test("Private list page includes a Back to home button", () => {
+  assert.match(
+    privatePageSource,
+    /<div className="private-links">[\s\S]*<a href="\/private\/editor" className="card-link">Page Editor<\/a>\s*<\/div>\s*<a href="\/" className="back-button pin-home-button">Back to home<\/a>/,
+  );
+});

@@ -59,6 +59,7 @@ export default function Private() {
           <a href="/private/checklist" className="card-link">Daily Checklist</a>
           <a href="/private/editor" className="card-link">Page Editor</a>
         </div>
+        <a href="/" className="back-button pin-home-button">Back to home</a>
       </main>
     );
   }
