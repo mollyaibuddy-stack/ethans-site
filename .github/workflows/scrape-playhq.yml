@@ -1,4 +1,4 @@
-﻿name: Scrape PlayHQ Daily
+name: Scrape PlayHQ Daily
 
 on:
   schedule:

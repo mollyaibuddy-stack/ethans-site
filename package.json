@@ -5,17 +5,24 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "test": "node --test tests/*.test.mjs",
+    "db:schema": "node scripts/apply-schema.mjs",
+    "scrape:playhq": "node scripts/scrape-playhq.mjs"
   },
   "dependencies": {
-    "next": "^14.2.0",
-    "react": "^18.3.0",
-    "react-dom": "^18.3.0"
+    "@neondatabase/serverless": "^1.1.0",
+    "next": "^16.2.7",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
-    "@types/react": "^18.3.0",
+    "@types/react": "^19.2.17",
+    "playwright": "^1.60.0",
     "typescript": "^5.4.0"
+  },
+  "overrides": {
+    "postcss": "8.5.10"
   }
 }
-

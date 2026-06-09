@@ -1,5 +1,7 @@
-﻿"use client";
-import { useState } from "react";
+"use client";
+
+import { useEffect, useState } from "react";
+import { calculateBalance } from "@/lib/private-data.mjs";
 
 interface Entry {
   id: number;
@@ -14,23 +16,60 @@ export default function MoneyTracker() {
   const [desc, setDesc] = useState("");
   const [amount, setAmount] = useState("");
   const [type, setType] = useState<"income" | "expense">("income");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
-  const balance = entries.reduce((sum, e) => 
-    e.type === "income" ? sum + e.amount : sum - e.amount, 0
-  );
+  useEffect(() => {
+    let cancelled = false;
 
-  const addEntry = (e: React.FormEvent) => {
+    async function loadEntries() {
+      try {
+        const response = await fetch("/api/private/money");
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Could not load money entries.");
+        if (!cancelled) setEntries(data.entries || []);
+      } catch (loadError) {
+        if (!cancelled) {
+          setError(loadError instanceof Error ? loadError.message : "Could not load money entries.");
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    loadEntries();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const balance = calculateBalance(entries);
+
+  const addEntry = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!desc || !amount) return;
-    setEntries([...entries, {
-      id: Date.now(),
-      date: new Date().toLocaleDateString("en-AU"),
-      description: desc,
-      amount: parseFloat(amount),
-      type,
-    }]);
-    setDesc("");
-    setAmount("");
+    if (!desc.trim() || !amount) return;
+
+    setSaving(true);
+    setError("");
+
+    try {
+      const response = await fetch("/api/private/money", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ description: desc.trim(), amount, type }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not save money entry.");
+
+      setEntries(data.entries || []);
+      setDesc("");
+      setAmount("");
+    } catch (saveError) {
+      setError(saveError instanceof Error ? saveError.message : "Could not save money entry.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -40,6 +79,8 @@ export default function MoneyTracker() {
       <h2 className={"balance" + (balance >= 0 ? " positive" : " negative")}>
         Balance: ${balance.toFixed(2)}
       </h2>
+      {loading && <p className="muted">Loading money entries...</p>}
+      {error && <p className="error">{error}</p>}
 
       <form onSubmit={addEntry} className="entry-form">
         <input value={desc} onChange={e => setDesc(e.target.value)} placeholder="What was it for?" />
@@ -48,7 +89,7 @@ export default function MoneyTracker() {
           <option value="income">Income</option>
           <option value="expense">Expense</option>
         </select>
-        <button type="submit">Add</button>
+        <button type="submit" disabled={saving}>{saving ? "Saving..." : "Add"}</button>
       </form>
 
       <table className="entry-table">

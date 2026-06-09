@@ -1,77 +1,132 @@
-﻿"use client";
-import { useState, useEffect } from "react";
+"use client";
+
+import { useEffect, useState } from "react";
+import { MONEY_PER_COMPLETE } from "@/lib/private-data.mjs";
 
 interface Task {
-  id: number;
+  id: string;
   label: string;
   done: boolean;
 }
 
-const MONEY_PER_COMPLETE = 20;
-
-const defaultTasks: Task[] = [
-  { id: 1, label: "Make my bed", done: false },
-  { id: 2, label: "Practice basketball", done: false },
-  { id: 3, label: "Finish homework", done: false },
-  { id: 4, label: "Read for 20 minutes", done: false },
-  { id: 5, label: "Tidy my room", done: false },
-];
-
 export default function Checklist() {
-  const [tasks, setTasks] = useState<Task[]>(defaultTasks);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [newTask, setNewTask] = useState("");
+  const [dateKey, setDateKey] = useState("");
   const [bonusAdded, setBonusAdded] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
   const allDone = tasks.length > 0 && tasks.every(t => t.done);
 
   useEffect(() => {
-    if (allDone && !bonusAdded) {
-      setBonusAdded(true);
-      const prev = JSON.parse(localStorage.getItem("checklist-bonus") || "[]");
-      prev.push({ date: new Date().toLocaleDateString("en-AU"), amount: MONEY_PER_COMPLETE });
-      localStorage.setItem("checklist-bonus", JSON.stringify(prev));
-    }
-    if (!allDone) setBonusAdded(false);
-  }, [allDone, bonusAdded]);
+    let cancelled = false;
 
-  const toggle = (id: number) => {
-    setTasks(tasks.map(t => t.id === id ? { ...t, done: !t.done } : t));
+    async function loadChecklist() {
+      try {
+        const response = await fetch("/api/private/checklist");
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Could not load checklist.");
+        if (!cancelled) {
+          setTasks(data.tasks || []);
+          setDateKey(data.dateKey || "");
+          setBonusAdded(Boolean(data.bonusAdded));
+        }
+      } catch (loadError) {
+        if (!cancelled) {
+          setError(loadError instanceof Error ? loadError.message : "Could not load checklist.");
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    loadChecklist();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const saveChecklistAction = async (payload: Record<string, unknown>) => {
+    setSaving(true);
+    setError("");
+
+    try {
+      const response = await fetch("/api/private/checklist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not save checklist.");
+
+      setTasks(data.tasks || []);
+      setDateKey(data.dateKey || "");
+      setBonusAdded(Boolean(data.bonusAdded));
+    } catch (saveError) {
+      setError(saveError instanceof Error ? saveError.message : "Could not save checklist.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const toggle = (id: string) => {
+    const task = tasks.find(t => t.id === id);
+    if (!task) return;
+    saveChecklistAction({ action: "toggle", id, done: !task.done });
   };
 
   const addTask = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTask.trim()) return;
-    setTasks([...tasks, { id: Date.now(), label: newTask.trim(), done: false }]);
+    saveChecklistAction({ action: "add", label: newTask.trim() });
     setNewTask("");
   };
 
-  const removeTask = (id: number) => {
-    setTasks(tasks.filter(t => t.id !== id));
+  const removeTask = (id: string) => {
+    saveChecklistAction({ action: "remove", id });
   };
 
   return (
     <main className="page">
       <a href="/private" className="back-link">Back to Private</a>
       <h1>Daily Checklist</h1>
-      {allDone && <p className="bonus-banner">All done! +${MONEY_PER_COMPLETE} added to your income</p>}
+      {loading && <p className="muted">Loading checklist...</p>}
+      {error && <p className="error">{error}</p>}
+      {allDone && (
+        <p className="bonus-banner">
+          All done! {bonusAdded ? `+$${MONEY_PER_COMPLETE} added to your income` : "Saving bonus..."}
+        </p>
+      )}
 
       <div className="task-list">
         {tasks.map(task => (
           <label key={task.id} className={"task-item" + (task.done ? " done" : "")}>
-            <input type="checkbox" checked={task.done} onChange={() => toggle(task.id)} />
+            <input type="checkbox" checked={task.done} disabled={saving} onChange={() => toggle(task.id)} />
             <span className="task-label">{task.label}</span>
-            <button onClick={() => removeTask(task.id)} className="task-remove" aria-label="Remove task">x</button>
+            <button
+              onClick={event => {
+                event.preventDefault();
+                removeTask(task.id);
+              }}
+              className="task-remove"
+              aria-label="Remove task"
+              disabled={saving}
+            >
+              x
+            </button>
           </label>
         ))}
       </div>
 
       <form onSubmit={addTask} className="add-task-form">
         <input value={newTask} onChange={e => setNewTask(e.target.value)} placeholder="Add a new task..." />
-        <button type="submit">Add</button>
+        <button type="submit" disabled={saving}>{saving ? "Saving..." : "Add"}</button>
       </form>
 
       <p className="muted task-info">
-        {tasks.filter(t => t.done).length} of {tasks.length} tasks done
+        {tasks.filter(t => t.done).length} of {tasks.length} tasks done{dateKey ? ` for ${dateKey}` : ""}
       </p>
     </main>
   );

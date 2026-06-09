@@ -1,23 +1,36 @@
-﻿"use client";
-import { useState, useRef } from "react";
+"use client";
+
+import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Private() {
+  const router = useRouter();
   const [pin, setPin] = useState("");
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error" | "config-error">("idle");
   const inputRef = useRef<HTMLInputElement>(null);
-  const correctPin = "1234"; // Will be moved to env var
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus("loading");
-    setTimeout(() => {
-      if (pin === correctPin) {
-        setStatus("success");
-      } else {
-        setStatus("error");
-        setPin("");
+
+    const response = await fetch("/api/private/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pin }),
+    });
+
+    if (response.ok) {
+      const next = new URLSearchParams(window.location.search).get("next");
+      if (next && next.startsWith("/private/")) {
+        router.push(next);
+        return;
       }
-    }, 500);
+      setStatus("success");
+      return;
+    }
+
+    setStatus(response.status === 503 ? "config-error" : "error");
+    setPin("");
   };
 
   if (status === "success") {
@@ -44,7 +57,7 @@ export default function Private() {
           maxLength={4}
           inputMode="numeric"
           pattern="[0-9]{4}"
-          placeholder="••••"
+          placeholder="...."
           value={pin}
           onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
           className="pin-input"
@@ -54,6 +67,7 @@ export default function Private() {
           {status === "loading" ? "..." : "Enter"}
         </button>
         {status === "error" && <p className="error">Wrong PIN, try again</p>}
+        {status === "config-error" && <p className="error">Private login is not configured on the server.</p>}
       </form>
       <a href="/" className="back-link">Back to home</a>
     </main>

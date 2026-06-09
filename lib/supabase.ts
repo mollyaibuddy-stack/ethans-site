@@ -1,4 +1,4 @@
-﻿// Supabase client - will be configured when database is set up
+// Supabase client - will be configured when database is set up
 // Sign up free at https://supabase.com
 // Then fill in the values below from your Supabase project settings
 
