@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import PrivateTabGuard from "@/components/PrivateTabGuard";
 import { calculateBalance } from "@/lib/private-data.mjs";
 
 interface Entry {
@@ -74,6 +75,7 @@ export default function MoneyTracker() {
 
   return (
     <main className="page">
+      <PrivateTabGuard />
       <a href="/private" className="back-button">Back to Private</a>
       <h1>Money Tracker</h1>
       <h2 className={"balance" + (balance >= 0 ? " positive" : " negative")}>

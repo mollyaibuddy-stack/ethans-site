@@ -13,6 +13,10 @@ export default function Private() {
     let cancelled = false;
 
     async function restoreSession() {
+      if (sessionStorage.getItem("ethan-private-tab-session") !== "active") {
+        return;
+      }
+
       const response = await fetch("/api/private/session");
       const data = await response.json().catch(() => null);
       if (!cancelled && response.ok && data?.authenticated) {
@@ -37,6 +41,7 @@ export default function Private() {
     });
 
     if (response.ok) {
+      sessionStorage.setItem("ethan-private-tab-session", "active");
       const next = new URLSearchParams(window.location.search).get("next");
       if (next && next.startsWith("/private/")) {
         router.push(next);
@@ -50,6 +55,13 @@ export default function Private() {
     setPin("");
   };
 
+  const goHome = async (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    sessionStorage.removeItem("ethan-private-tab-session");
+    await fetch("/api/private/logout", { method: "POST" }).catch(() => null);
+    router.push("/");
+  };
+
   if (status === "success") {
     return (
       <main className="page private-area">
@@ -59,7 +71,7 @@ export default function Private() {
           <a href="/private/checklist" className="card-link">Daily Checklist</a>
           <a href="/private/editor" className="card-link">Page Editor</a>
         </div>
-        <a href="/" className="back-button pin-home-button">Back to home</a>
+        <a href="/" className="back-button pin-home-button" onClick={goHome}>Back to home</a>
       </main>
     );
   }
@@ -87,7 +99,7 @@ export default function Private() {
         {status === "error" && <p className="error">Wrong PIN, try again</p>}
         {status === "config-error" && <p className="error">Private login is not configured on the server.</p>}
       </form>
-      <a href="/" className="back-button pin-home-button">Back to home</a>
+      <a href="/" className="back-button pin-home-button" onClick={goHome}>Back to home</a>
     </main>
   );
 }

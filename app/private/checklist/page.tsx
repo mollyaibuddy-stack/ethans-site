@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import PrivateTabGuard from "@/components/PrivateTabGuard";
 import { MONEY_PER_COMPLETE } from "@/lib/private-data.mjs";
 
 interface Task {
@@ -90,6 +91,7 @@ export default function Checklist() {
 
   return (
     <main className="page">
+      <PrivateTabGuard />
       <a href="/private" className="back-button">Back to Private</a>
       <h1>Daily Checklist</h1>
       {loading && <p className="muted">Loading checklist...</p>}

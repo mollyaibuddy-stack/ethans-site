@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import PrivateTabGuard from "@/components/PrivateTabGuard";
 import { ENTRY_DRAFT_PAGES, createDraftEntry, updateDraftEntry } from "@/lib/private-store.mjs";
 
 interface DraftEntry {
@@ -147,6 +148,7 @@ export default function Editor() {
 
   return (
     <main className="page">
+      <PrivateTabGuard />
       <a href="/private" className="back-button">Back to Private</a>
       <h1>Page Editor</h1>
       <p className="muted">Save page drafts here. Publishing these drafts to the public site is still a separate step.</p>
