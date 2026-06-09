@@ -1,4 +1,5 @@
 import Navbar from "@/components/Navbar";
+import F1Widget from "@/components/F1Widget";
 import Link from "next/link";
 
 export default function Home() {
@@ -27,6 +28,8 @@ export default function Home() {
             <li>Building this website with my dad</li>
           </ul>
         </section>
+
+        <F1Widget />
       </main>
     </>
   );

@@ -69,7 +69,7 @@ export default function Private() {
         {status === "error" && <p className="error">Wrong PIN, try again</p>}
         {status === "config-error" && <p className="error">Private login is not configured on the server.</p>}
       </form>
-      <a href="/" className="back-link">Back to home</a>
+      <a href="/" className="back-button">Back to home</a>
     </main>
   );
 }
