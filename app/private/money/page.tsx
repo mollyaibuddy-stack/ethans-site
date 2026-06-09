@@ -74,7 +74,7 @@ export default function MoneyTracker() {
 
   return (
     <main className="page">
-      <a href="/private" className="back-link">Back to Private</a>
+      <a href="/private" className="back-button">Back to Private</a>
       <h1>Money Tracker</h1>
       <h2 className={"balance" + (balance >= 0 ? " positive" : " negative")}>
         Balance: ${balance.toFixed(2)}

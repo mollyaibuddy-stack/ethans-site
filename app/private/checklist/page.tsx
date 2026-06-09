@@ -90,7 +90,7 @@ export default function Checklist() {
 
   return (
     <main className="page">
-      <a href="/private" className="back-link">Back to Private</a>
+      <a href="/private" className="back-button">Back to Private</a>
       <h1>Daily Checklist</h1>
       {loading && <p className="muted">Loading checklist...</p>}
       {error && <p className="error">{error}</p>}
