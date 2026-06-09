@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function Private() {
@@ -8,6 +8,23 @@ export default function Private() {
   const [pin, setPin] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error" | "config-error">("idle");
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function restoreSession() {
+      const response = await fetch("/api/private/session");
+      const data = await response.json().catch(() => null);
+      if (!cancelled && response.ok && data?.authenticated) {
+        setStatus("success");
+      }
+    }
+
+    restoreSession();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,7 +86,7 @@ export default function Private() {
         {status === "error" && <p className="error">Wrong PIN, try again</p>}
         {status === "config-error" && <p className="error">Private login is not configured on the server.</p>}
       </form>
-      <a href="/" className="back-button">Back to home</a>
+      <a href="/" className="back-button pin-home-button">Back to home</a>
     </main>
   );
 }
