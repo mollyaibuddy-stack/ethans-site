@@ -1,4 +1,5 @@
 import Navbar from "@/components/Navbar";
+import HoopSnakeGame from "@/components/HoopSnakeGame";
 
 export default function Projects() {
   return (
@@ -7,7 +8,7 @@ export default function Projects() {
       <main className="page">
         <h1>Projects</h1>
         <p>Things I've made and built.</p>
-        <p className="muted">(Coming soon — Ethan will fill this in!)</p>
+        <HoopSnakeGame />
       </main>
     </>
   );
