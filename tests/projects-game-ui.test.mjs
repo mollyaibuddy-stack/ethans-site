@@ -44,8 +44,8 @@ test("projects page includes Cyber Food Beads after Hoop Snake", () => {
 });
 
 test("Cyber Food Beads shows update date and version", () => {
-  assert.match(cyberFoodSource, /PROJECT_VERSION = "0\.1\.0"/);
-  assert.match(cyberFoodSource, /PROJECT_UPDATED = "June 11, 2026"/);
+  assert.match(cyberFoodSource, /PROJECT_VERSION = "0\.2\.0"/);
+  assert.match(cyberFoodSource, /PROJECT_UPDATED = "June 12, 2026"/);
   assert.match(cyberFoodSource, /Version {PROJECT_VERSION}/);
   assert.match(cyberFoodSource, /Updated {PROJECT_UPDATED}/);
 });
@@ -76,4 +76,18 @@ test("Cyber Food Beads has public and private server APIs", () => {
   assert.match(publicCyberApiSource, /listCyberFoodBeads/);
   assert.match(privateCyberApiSource, /withPrivateStore/);
   assert.match(privateCyberApiSource, /saveCyberFoodBeads/);
+});
+
+test("Cyber Food Beads supports server-customized foods and uploads", () => {
+  assert.match(cyberFoodSource, /PROJECT_VERSION = "0\.2\.0"/);
+  assert.match(cyberFoodSource, /PROJECT_UPDATED = "June 12, 2026"/);
+  assert.match(cyberFoodSource, /fetch\("\/api\/cyber-food-beads"\)/);
+  assert.match(cyberFoodSource, /fetch\("\/api\/private\/cyber-food-beads"/);
+  assert.match(cyberFoodSource, /Customize Foods/);
+  assert.match(cyberFoodSource, /Save Foods/);
+  assert.match(cyberFoodSource, /Reset to Defaults/);
+  assert.match(cyberFoodSource, /canvas\.width = 256/);
+  assert.match(cyberFoodSource, /canvas\.height = 256/);
+  assert.match(cyberFoodSource, /\.toBlob\(/);
+  assert.match(cyberFoodSource, /imageDataUrl/);
 });

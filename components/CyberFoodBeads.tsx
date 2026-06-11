@@ -5,15 +5,22 @@ import * as THREE from "three";
 import {
   BEAD_STEP,
   CYBER_FOOD_BEADS,
+  MAX_CYBER_FOOD_IMAGE_DATA_URL_LENGTH,
   countBeadCrossings,
-  getSelectedFood,
+  defaultCyberFoodBeads,
+  normalizeAngle,
 } from "@/lib/cyber-food-beads.mjs";
 
-const PROJECT_VERSION = "0.1.0";
-const PROJECT_UPDATED = "June 11, 2026";
+const PROJECT_VERSION = "0.2.0";
+const PROJECT_UPDATED = "June 12, 2026";
 
-type FoodBead = {
+type FoodDraft = {
+  position: number;
   name: string;
+  imageDataUrl: string;
+};
+
+type RenderFood = FoodDraft & {
   palette: string[];
 };
 
@@ -29,7 +36,37 @@ type AudioWindow = Window & {
   webkitAudioContext?: typeof AudioContext;
 };
 
-function drawFoodIcon(ctx: CanvasRenderingContext2D, food: FoodBead) {
+function foodsWithPalette(foods: FoodDraft[]): RenderFood[] {
+  return foods.map((food, index) => ({
+    ...food,
+    position: index,
+    palette: CYBER_FOOD_BEADS[index]?.palette || ["#f8d66d", "#c95c2e", "#f6efe2"],
+  }));
+}
+
+function drawUploadedImage(ctx: CanvasRenderingContext2D, image: HTMLImageElement) {
+  const sourceSize = Math.min(image.naturalWidth, image.naturalHeight);
+  const sourceX = (image.naturalWidth - sourceSize) / 2;
+  const sourceY = (image.naturalHeight - sourceSize) / 2;
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(128, 128, 112, 0, Math.PI * 2);
+  ctx.clip();
+  ctx.drawImage(image, sourceX, sourceY, sourceSize, sourceSize, 16, 16, 224, 224);
+  ctx.restore();
+
+  const shine = ctx.createRadialGradient(88, 64, 8, 128, 128, 128);
+  shine.addColorStop(0, "rgba(255,255,255,0.5)");
+  shine.addColorStop(0.45, "rgba(255,255,255,0.08)");
+  shine.addColorStop(1, "rgba(0,0,0,0.34)");
+  ctx.fillStyle = shine;
+  ctx.beginPath();
+  ctx.arc(128, 128, 116, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function drawFoodIcon(ctx: CanvasRenderingContext2D, food: RenderFood) {
   const [primary, secondary, accent] = food.palette;
 
   ctx.clearRect(0, 0, 256, 256);
@@ -195,17 +232,88 @@ function drawFoodIcon(ctx: CanvasRenderingContext2D, food: FoodBead) {
   }
 }
 
-function createFoodTexture(food: FoodBead) {
+function createFoodTexture(food: RenderFood) {
   const canvas = document.createElement("canvas");
   canvas.width = 256;
   canvas.height = 256;
   const ctx = canvas.getContext("2d");
   if (!ctx) return null;
   drawFoodIcon(ctx, food);
+
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.anisotropy = 4;
+
+  if (food.imageDataUrl) {
+    const image = new Image();
+    image.onload = () => {
+      ctx.clearRect(0, 0, 256, 256);
+      drawUploadedImage(ctx, image);
+      texture.needsUpdate = true;
+    };
+    image.src = food.imageDataUrl;
+  }
+
   return texture;
+}
+
+function blobToDataUrl(blob: Blob) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(new Error("Could not read compressed image."));
+    reader.readAsDataURL(blob);
+  });
+}
+
+function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality: number) {
+  return new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob(blob => {
+      if (!blob) {
+        reject(new Error("Could not compress image."));
+        return;
+      }
+      resolve(blob);
+    }, type, quality);
+  });
+}
+
+async function processFoodImage(file: File) {
+  if (!file.type.startsWith("image/")) {
+    throw new Error("Please upload an image file.");
+  }
+
+  const image = new Image();
+  const objectUrl = URL.createObjectURL(file);
+  try {
+    image.src = objectUrl;
+    await image.decode();
+
+    const canvas = document.createElement("canvas");
+    canvas.width = 256;
+    canvas.height = 256;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Image processing is not available.");
+
+    const sourceSize = Math.min(image.naturalWidth, image.naturalHeight);
+    const sourceX = (image.naturalWidth - sourceSize) / 2;
+    const sourceY = (image.naturalHeight - sourceSize) / 2;
+    ctx.drawImage(image, sourceX, sourceY, sourceSize, sourceSize, 0, 0, 256, 256);
+
+    const webpBlob = await canvasToBlob(canvas, "image/webp", 0.78);
+    const blob = webpBlob.type === "image/webp"
+      ? webpBlob
+      : await canvasToBlob(canvas, "image/jpeg", 0.82);
+    const imageDataUrl = await blobToDataUrl(blob);
+
+    if (imageDataUrl.length > MAX_CYBER_FOOD_IMAGE_DATA_URL_LENGTH) {
+      throw new Error("Processed image is too large. Please choose a simpler image.");
+    }
+
+    return imageDataUrl;
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
 }
 
 export default function CyberFoodBeads() {
@@ -219,7 +327,41 @@ export default function CyberFoodBeads() {
   const stoppingRef = useRef(false);
   const resolveOnStopRef = useRef(false);
   const audioContextRef = useRef<AudioContext | null>(null);
-  const [result, setResult] = useState<FoodBead | null>(null);
+  const [foods, setFoods] = useState<FoodDraft[]>(() => defaultCyberFoodBeads());
+  const foodsRef = useRef<RenderFood[]>(foodsWithPalette(defaultCyberFoodBeads()));
+  const [draftFoods, setDraftFoods] = useState<FoodDraft[]>(() => defaultCyberFoodBeads());
+  const [result, setResult] = useState<RenderFood | null>(null);
+  const [customizing, setCustomizing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
+  const [rowErrors, setRowErrors] = useState<Record<number, string>>({});
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/cyber-food-beads")
+      .then(response => response.ok ? response.json() : Promise.reject(new Error("Could not load custom foods.")))
+      .then(data => {
+        if (!active || !Array.isArray(data?.foods)) return;
+        setFoods(data.foods);
+        setDraftFoods(data.foods);
+      })
+      .catch(() => {
+        if (active) setMessage("Using default foods.");
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const renderFoods = foodsWithPalette(foods);
+  foodsRef.current = renderFoods;
+
+  const getSelectedFood = (rotation: number) => {
+    const normalized = normalizeAngle(-rotation);
+    const index = Math.round(normalized / BEAD_STEP) % foodsRef.current.length;
+    return foodsRef.current[index];
+  };
 
   const unlockAudio = () => {
     if (audioContextRef.current) {
@@ -302,7 +444,7 @@ export default function CyberFoodBeads() {
     const textures: THREE.Texture[] = [];
     const beadMaterials: THREE.MeshStandardMaterial[] = [];
     const radius = 2.38;
-    CYBER_FOOD_BEADS.forEach((food: FoodBead, index: number) => {
+    renderFoods.forEach((food, index) => {
       const angle = Math.PI / 2 + index * BEAD_STEP;
       const texture = createFoodTexture(food);
       if (texture) textures.push(texture);
@@ -372,16 +514,21 @@ export default function CyberFoodBeads() {
     return () => {
       observer.disconnect();
       if (animationRef.current) window.cancelAnimationFrame(animationRef.current);
-      host.removeChild(renderer.domElement);
+      if (renderer.domElement.parentElement === host) {
+        host.removeChild(renderer.domElement);
+      }
       beadGeometry.dispose();
       cordGeometry.dispose();
       cordMaterial.dispose();
       textures.forEach(texture => texture.dispose());
       beadMaterials.forEach(material => material.dispose());
       renderer.dispose();
-      audioContextRef.current?.close();
-      audioContextRef.current = null;
     };
+  }, [foods]);
+
+  useEffect(() => () => {
+    audioContextRef.current?.close();
+    audioContextRef.current = null;
   }, []);
 
   const startPan = () => {
@@ -457,6 +604,59 @@ export default function CyberFoodBeads() {
     event.currentTarget.releasePointerCapture(event.pointerId);
   };
 
+  const openCustomizer = () => {
+    setDraftFoods(foods);
+    setRowErrors({});
+    setMessage("");
+    setCustomizing(true);
+  };
+
+  const updateDraftName = (position: number, name: string) => {
+    setDraftFoods(current => current.map(food => food.position === position ? { ...food, name } : food));
+  };
+
+  const updateDraftImage = async (position: number, file: File | null) => {
+    if (!file) return;
+    setRowErrors(current => ({ ...current, [position]: "" }));
+    try {
+      const imageDataUrl = await processFoodImage(file);
+      setDraftFoods(current => current.map(food => food.position === position ? { ...food, imageDataUrl } : food));
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Could not process image.";
+      setRowErrors(current => ({ ...current, [position]: errorMessage }));
+    }
+  };
+
+  const resetDraftToDefaults = () => {
+    setDraftFoods(defaultCyberFoodBeads());
+    setRowErrors({});
+    setMessage("Defaults ready to save.");
+  };
+
+  const saveFoods = async () => {
+    setSaving(true);
+    setMessage("");
+    try {
+      const response = await fetch("/api/private/cyber-food-beads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ foods: draftFoods }),
+      });
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(data?.error || "Could not save foods.");
+      }
+      setFoods(data.foods);
+      setDraftFoods(data.foods);
+      setCustomizing(false);
+      setMessage("Custom foods saved.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not save foods.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <section className="cyber-food-beads" aria-label="Cyber Food Beads project">
       <div className="cyber-food-header">
@@ -488,7 +688,51 @@ export default function CyberFoodBeads() {
         <button type="button" onClick={startPan}>Pan</button>
         <button type="button" onClick={stopPan}>Stop</button>
         <button type="button" onClick={reset}>Reset</button>
+        <button type="button" onClick={openCustomizer}>Customize Foods</button>
       </div>
+
+      {message && <p className="cyber-food-message">{message}</p>}
+
+      {customizing && (
+        <div className="cyber-food-customizer" aria-label="Customize Cyber Food Beads foods">
+          <div className="cyber-food-customizer-header">
+            <h3>Customize Foods</h3>
+            <button type="button" onClick={() => setCustomizing(false)}>Cancel</button>
+          </div>
+          <div className="cyber-food-custom-list">
+            {draftFoods.map(food => (
+              <div className="cyber-food-custom-row" key={food.position}>
+                <span className="cyber-food-custom-number">{food.position + 1}</span>
+                <label>
+                  <span>Name</span>
+                  <input
+                    value={food.name}
+                    maxLength={40}
+                    onChange={event => updateDraftName(food.position, event.target.value)}
+                  />
+                </label>
+                <div className="cyber-food-custom-preview" aria-label={`Preview for ${food.name}`}>
+                  {food.imageDataUrl ? <img src={food.imageDataUrl} alt="" /> : <span>No image</span>}
+                </div>
+                <label className="file-button cyber-food-upload">
+                  Upload Image
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={event => void updateDraftImage(food.position, event.target.files?.[0] || null)}
+                  />
+                </label>
+                {rowErrors[food.position] && <p className="cyber-food-row-error">{rowErrors[food.position]}</p>}
+              </div>
+            ))}
+          </div>
+          <div className="cyber-food-custom-actions">
+            <button type="button" onClick={saveFoods} disabled={saving}>{saving ? "Saving..." : "Save Foods"}</button>
+            <button type="button" onClick={resetDraftToDefaults}>Reset to Defaults</button>
+            <button type="button" onClick={() => setCustomizing(false)}>Cancel</button>
+          </div>
+        </div>
+      )}
 
       {result && (
         <div className="cyber-food-result-modal" role="dialog" aria-modal="true" aria-label="Cyber Food Beads result">
