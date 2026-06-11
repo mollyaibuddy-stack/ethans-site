@@ -144,11 +144,27 @@ h2 { font-size: 1.25rem; font-weight: 600; margin: 1.5rem 0 0.75rem; }
 .snake-control-left { grid-area: left; }
 .snake-control-right { grid-area: right; }
 .snake-control-down { grid-area: down; }
+.cyber-food-beads { position: relative; margin-top: 2rem; padding: 1rem; border: 1px solid var(--border); border-radius: 0.5rem; background: #090a10; color: #f8fafc; overflow: hidden; }
+.cyber-food-header { display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start; margin-bottom: 1rem; }
+.cyber-food-header h2 { margin-top: 0; }
+.cyber-food-scene { position: relative; min-height: 360px; border: 1px solid rgba(139, 233, 255, 0.28); border-radius: 0.5rem; background: radial-gradient(circle at 50% 32%, rgba(139, 233, 255, 0.18), rgba(9, 10, 16, 0.2) 34%, #05060a 72%); overflow: hidden; }
+.cyber-food-canvas-host { width: 100%; height: clamp(320px, 58vw, 560px); touch-action: none; cursor: grab; }
+.cyber-food-canvas-host:active { cursor: grabbing; }
+.cyber-food-canvas-host canvas { display: block; width: 100%; height: 100%; }
+.cyber-food-selector { position: absolute; z-index: 2; top: 0.75rem; left: 50%; width: 0; height: 0; border-left: 13px solid transparent; border-right: 13px solid transparent; border-top: 28px solid #f8fafc; filter: drop-shadow(0 0 12px rgba(139, 233, 255, 0.85)); transform: translateX(-50%); pointer-events: none; }
+.cyber-food-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center; margin-top: 1rem; }
+.cyber-food-actions button, .cyber-food-result-card button { min-height: 42px; padding: 0.55rem 0.9rem; border: none; border-radius: 0.5rem; background: #f8fafc; color: #090a10; cursor: pointer; font-weight: 800; }
+.cyber-food-actions button:active, .cyber-food-result-card button:active { transform: translateY(1px); }
+.cyber-food-result-modal { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; padding: 1rem; background: rgba(0, 0, 0, 0.62); }
+.cyber-food-result-card { width: min(100%, 340px); padding: 1.25rem; border: 1px solid rgba(139, 233, 255, 0.45); border-radius: 0.5rem; background: #090a10; color: #f8fafc; text-align: center; box-shadow: 0 18px 80px rgba(0, 0, 0, 0.45); }
+.cyber-food-result-card p { margin-top: 0; font-size: 1.25rem; font-weight: 800; }
 
 @media (max-width: 520px) {
   .snake-game { margin-left: -0.75rem; margin-right: -0.75rem; padding: 0.8rem; }
   .snake-game-header { align-items: stretch; }
   .snake-board { gap: 3px; padding: 0.45rem; }
+  .cyber-food-beads { margin-left: -0.75rem; margin-right: -0.75rem; padding: 0.8rem; }
+  .cyber-food-scene { min-height: 320px; }
 }
 
 /* Basketball fixture table */
