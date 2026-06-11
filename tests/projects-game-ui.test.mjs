@@ -6,6 +6,8 @@ const projectsSource = fs.readFileSync(new URL("../app/projects/page.tsx", impor
 const gameSource = fs.readFileSync(new URL("../components/HoopSnakeGame.tsx", import.meta.url), "utf8");
 const cyberFoodSource = fs.readFileSync(new URL("../components/CyberFoodBeads.tsx", import.meta.url), "utf8");
 const cssSource = fs.readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
+const publicCyberApiSource = fs.readFileSync(new URL("../app/api/cyber-food-beads/route.ts", import.meta.url), "utf8");
+const privateCyberApiSource = fs.readFileSync(new URL("../app/api/private/cyber-food-beads/route.ts", import.meta.url), "utf8");
 
 test("projects page includes Hoop Snake as Ethan's first game", () => {
   assert.match(projectsSource, /import HoopSnakeGame from "@\/components\/HoopSnakeGame";/);
@@ -67,4 +69,11 @@ test("Cyber Food Beads resolves a food after direct drag release", () => {
 
 test("Cyber Food Beads avoids real fast-food brands", () => {
   assert.doesNotMatch(cyberFoodSource, /McDonald|KFC|Hungry Jack|Burger King|Domino|Pizza Hut|Subway|Taco Bell/i);
+});
+
+test("Cyber Food Beads has public and private server APIs", () => {
+  assert.match(publicCyberApiSource, /defaultCyberFoodBeads/);
+  assert.match(publicCyberApiSource, /listCyberFoodBeads/);
+  assert.match(privateCyberApiSource, /withPrivateStore/);
+  assert.match(privateCyberApiSource, /saveCyberFoodBeads/);
 });

@@ -36,3 +36,10 @@ CREATE TABLE IF NOT EXISTS page_drafts (
   content TEXT NOT NULL,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+CREATE TABLE IF NOT EXISTS cyber_food_beads (
+  position INTEGER PRIMARY KEY CHECK (position >= 0 AND position < 12),
+  name TEXT NOT NULL,
+  image_data_url TEXT NOT NULL DEFAULT '',
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);

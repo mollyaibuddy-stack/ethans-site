@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import test from "node:test";
 
 import {
@@ -10,6 +11,9 @@ import {
   mapMoneyRow,
   updateDraftEntry,
 } from "../lib/private-store.mjs";
+
+const privateStoreSource = fs.readFileSync(new URL("../lib/private-store.mjs", import.meta.url), "utf8");
+const schemaSource = fs.readFileSync(new URL("../db/schema.sql", import.meta.url), "utf8");
 
 test("converts money amounts to integer cents for database storage", () => {
   assert.equal(amountToCents("20"), 2000);
@@ -70,4 +74,11 @@ test("creates and updates structured editor draft entries", () => {
       image: "",
     }],
   );
+});
+
+test("private schema includes Cyber Food Beads storage", () => {
+  assert.match(privateStoreSource, /CREATE TABLE IF NOT EXISTS cyber_food_beads/);
+  assert.match(schemaSource, /CREATE TABLE IF NOT EXISTS cyber_food_beads/);
+  assert.match(privateStoreSource, /listCyberFoodBeads/);
+  assert.match(privateStoreSource, /saveCyberFoodBeads/);
 });
