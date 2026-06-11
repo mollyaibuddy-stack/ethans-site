@@ -67,6 +67,12 @@ test("Cyber Food Beads resolves a food after direct drag release", () => {
   assert.match(cyberFoodSource, /setResult\(getSelectedFood\(rotationRef\.current\)\)/);
 });
 
+test("Cyber Food Beads renders larger beads with nearly closed gaps", () => {
+  assert.match(cyberFoodSource, /new THREE\.SphereGeometry\(0\.6,\s*40,\s*40\)/);
+  assert.match(cyberFoodSource, /new THREE\.TorusGeometry\(2\.34,\s*0\.025,\s*12,\s*96\)/);
+  assert.match(cyberFoodSource, /const radius = 2\.34;/);
+});
+
 test("Cyber Food Beads avoids real fast-food brands", () => {
   assert.doesNotMatch(cyberFoodSource, /McDonald|KFC|Hungry Jack|Burger King|Domino|Pizza Hut|Subway|Taco Bell/i);
 });

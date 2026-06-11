@@ -430,8 +430,8 @@ export default function CyberFoodBeads() {
     groupRef.current = group;
     scene.add(group);
 
-    const beadGeometry = new THREE.SphereGeometry(0.44, 40, 40);
-    const cordGeometry = new THREE.TorusGeometry(2.38, 0.025, 12, 96);
+    const beadGeometry = new THREE.SphereGeometry(0.6, 40, 40);
+    const cordGeometry = new THREE.TorusGeometry(2.34, 0.025, 12, 96);
     const cordMaterial = new THREE.MeshStandardMaterial({
       color: "#8be9ff",
       emissive: "#134a59",
@@ -443,7 +443,7 @@ export default function CyberFoodBeads() {
 
     const textures: THREE.Texture[] = [];
     const beadMaterials: THREE.MeshStandardMaterial[] = [];
-    const radius = 2.38;
+    const radius = 2.34;
     renderFoods.forEach((food, index) => {
       const angle = Math.PI / 2 + index * BEAD_STEP;
       const texture = createFoodTexture(food);
