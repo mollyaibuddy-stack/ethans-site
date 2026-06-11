@@ -21,6 +21,7 @@ type DragState = {
   pointerId: number;
   x: number;
   lastTime: number;
+  moved: boolean;
 };
 
 type AudioWindow = Window & {
@@ -216,6 +217,7 @@ export default function CyberFoodBeads() {
   const velocityRef = useRef(0);
   const dragRef = useRef<DragState | null>(null);
   const stoppingRef = useRef(false);
+  const resolveOnStopRef = useRef(false);
   const audioContextRef = useRef<AudioContext | null>(null);
   const [result, setResult] = useState<FoodBead | null>(null);
 
@@ -333,10 +335,11 @@ export default function CyberFoodBeads() {
 
       if (!dragRef.current) {
         rotationRef.current += velocityRef.current;
-        velocityRef.current *= stoppingRef.current ? 0.88 : 0.982;
+        velocityRef.current *= (stoppingRef.current || resolveOnStopRef.current) ? 0.9 : 0.982;
         if (Math.abs(velocityRef.current) < 0.0007) {
           velocityRef.current = 0;
-          if (stoppingRef.current) {
+          if (resolveOnStopRef.current) {
+            resolveOnStopRef.current = false;
             stoppingRef.current = false;
             setResult(getSelectedFood(rotationRef.current));
           }
@@ -385,6 +388,7 @@ export default function CyberFoodBeads() {
     unlockAudio();
     setResult(null);
     stoppingRef.current = false;
+    resolveOnStopRef.current = false;
     velocityRef.current = velocityRef.current >= 0 ? 0.055 : -0.055;
   };
 
@@ -392,6 +396,7 @@ export default function CyberFoodBeads() {
     unlockAudio();
     setResult(null);
     stoppingRef.current = true;
+    resolveOnStopRef.current = true;
     if (Math.abs(velocityRef.current) < 0.012) {
       velocityRef.current = velocityRef.current >= 0 ? 0.03 : -0.03;
     }
@@ -402,6 +407,7 @@ export default function CyberFoodBeads() {
     rotationRef.current = 0;
     velocityRef.current = 0;
     stoppingRef.current = false;
+    resolveOnStopRef.current = false;
     setResult(null);
   };
 
@@ -409,10 +415,12 @@ export default function CyberFoodBeads() {
     unlockAudio();
     setResult(null);
     stoppingRef.current = false;
+    resolveOnStopRef.current = false;
     dragRef.current = {
       pointerId: event.pointerId,
       x: event.clientX,
       lastTime: performance.now(),
+      moved: false,
     };
     event.currentTarget.setPointerCapture(event.pointerId);
   };
@@ -432,6 +440,7 @@ export default function CyberFoodBeads() {
       ...drag,
       x: event.clientX,
       lastTime: now,
+      moved: drag.moved || Math.abs(dx) > 2,
     };
     for (let i = 0; i < crossings; i += 1) {
       playTick();
@@ -439,7 +448,11 @@ export default function CyberFoodBeads() {
   };
 
   const endDrag = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (dragRef.current?.pointerId !== event.pointerId) return;
+    const drag = dragRef.current;
+    if (drag?.pointerId !== event.pointerId) return;
+    if (drag.moved) {
+      resolveOnStopRef.current = true;
+    }
     dragRef.current = null;
     event.currentTarget.releasePointerCapture(event.pointerId);
   };

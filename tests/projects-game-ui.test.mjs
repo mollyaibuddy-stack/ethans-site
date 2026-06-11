@@ -59,6 +59,12 @@ test("Cyber Food Beads supports pointer dragging, audio ticks, and controls", ()
   assert.match(cyberFoodSource, />Reset</);
 });
 
+test("Cyber Food Beads resolves a food after direct drag release", () => {
+  assert.match(cyberFoodSource, /resolveOnStopRef/);
+  assert.match(cyberFoodSource, /resolveOnStopRef\.current = true;/);
+  assert.match(cyberFoodSource, /setResult\(getSelectedFood\(rotationRef\.current\)\)/);
+});
+
 test("Cyber Food Beads avoids real fast-food brands", () => {
   assert.doesNotMatch(cyberFoodSource, /McDonald|KFC|Hungry Jack|Burger King|Domino|Pizza Hut|Subway|Taco Bell/i);
 });
