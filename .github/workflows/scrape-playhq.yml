@@ -1,9 +1,7 @@
-name: Scrape PlayHQ Daily
+name: Scrape PlayHQ Manual
 
 on:
-  schedule:
-    - cron: "0 20 * * *"  # 6am AEST (8pm UTC) daily
-  workflow_dispatch:  # manual trigger
+  workflow_dispatch:  # manual fallback; scheduled scraping runs on the Mac Mini
 
 jobs:
   scrape:

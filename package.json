@@ -8,7 +8,9 @@
     "start": "next start",
     "test": "node --test tests/*.test.mjs",
     "db:schema": "node scripts/apply-schema.mjs",
-    "scrape:playhq": "node scripts/scrape-playhq.mjs"
+    "scrape:playhq": "node scripts/scrape-playhq.mjs",
+    "playhq:update:local": "node scripts/update-playhq-local.mjs",
+    "playhq:install-agent": "zsh scripts/install-playhq-launch-agent.sh"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
