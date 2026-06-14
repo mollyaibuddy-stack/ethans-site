@@ -31,6 +31,13 @@ CREATE TABLE IF NOT EXISTS checklist_bonus_awards (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS checklist_weekly_multipliers (
+  week_start DATE PRIMARY KEY,
+  money_entry_id TEXT,
+  amount_cents INTEGER NOT NULL DEFAULT 0,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS page_drafts (
   slug TEXT PRIMARY KEY,
   content TEXT NOT NULL,

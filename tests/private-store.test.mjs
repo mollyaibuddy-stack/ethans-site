@@ -82,3 +82,12 @@ test("private schema includes Cyber Food Beads storage", () => {
   assert.match(privateStoreSource, /listCyberFoodBeads/);
   assert.match(privateStoreSource, /saveCyberFoodBeads/);
 });
+
+test("private schema includes weekly checklist multiplier storage", () => {
+  assert.match(privateStoreSource, /CREATE TABLE IF NOT EXISTS checklist_weekly_multipliers/);
+  assert.match(schemaSource, /CREATE TABLE IF NOT EXISTS checklist_weekly_multipliers/);
+  assert.match(privateStoreSource, /maybeAwardWeeklyIncomeMultiplier/);
+  assert.match(privateStoreSource, /WEEKLY_MULTIPLIER_SOURCE/);
+  assert.match(privateStoreSource, /await maybeAwardWeeklyIncomeMultiplier\(date\);/);
+  assert.match(privateStoreSource, /await maybeAwardWeeklyIncomeMultiplier\(dateKey\);/);
+});
