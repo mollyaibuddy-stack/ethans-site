@@ -18,6 +18,10 @@ export async function POST(request: NextRequest) {
       return store.setChecklistTaskDone(body.id, body.done);
     }
 
+    if (body.action === "toggleWeekly") {
+      return store.setWeeklyChecklistTaskDone(body.id, body.done);
+    }
+
     if (body.action === "add") {
       return store.addChecklistTask(body.label);
     }

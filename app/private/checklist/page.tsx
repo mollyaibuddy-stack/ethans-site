@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import PrivateTabGuard from "@/components/PrivateTabGuard";
-import { MONEY_PER_COMPLETE } from "@/lib/private-data.mjs";
+import { DEFAULT_WEEKLY_TASKS, MONEY_PER_COMPLETE } from "@/lib/private-data.mjs";
 
 interface Task {
   id: string;
@@ -12,13 +12,17 @@ interface Task {
 
 export default function Checklist() {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [weeklyTasks, setWeeklyTasks] = useState<Task[]>(DEFAULT_WEEKLY_TASKS);
   const [dateKey, setDateKey] = useState("");
+  const [weekStart, setWeekStart] = useState("");
+  const [weekEnd, setWeekEnd] = useState("");
   const [bonusAdded, setBonusAdded] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
   const allDone = tasks.length > 0 && tasks.every(t => t.done);
+  const weeklyDone = weeklyTasks.length > 0 && weeklyTasks.every(t => t.done);
 
   useEffect(() => {
     let cancelled = false;
@@ -30,7 +34,10 @@ export default function Checklist() {
         if (!response.ok) throw new Error(data.error || "Could not load checklist.");
         if (!cancelled) {
           setTasks(data.tasks || []);
+          setWeeklyTasks(data.weeklyTasks || DEFAULT_WEEKLY_TASKS);
           setDateKey(data.dateKey || "");
+          setWeekStart(data.weekStart || "");
+          setWeekEnd(data.weekEnd || "");
           setBonusAdded(Boolean(data.bonusAdded));
         }
       } catch (loadError) {
@@ -62,7 +69,10 @@ export default function Checklist() {
       if (!response.ok) throw new Error(data.error || "Could not save checklist.");
 
       setTasks(data.tasks || []);
+      setWeeklyTasks(data.weeklyTasks || DEFAULT_WEEKLY_TASKS);
       setDateKey(data.dateKey || "");
+      setWeekStart(data.weekStart || "");
+      setWeekEnd(data.weekEnd || "");
       setBonusAdded(Boolean(data.bonusAdded));
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : "Could not save checklist.");
@@ -75,6 +85,12 @@ export default function Checklist() {
     const task = tasks.find(t => t.id === id);
     if (!task) return;
     saveChecklistAction({ action: "toggle", id, done: !task.done });
+  };
+
+  const toggleWeekly = (id: string) => {
+    const task = weeklyTasks.find(t => t.id === id);
+    if (!task) return;
+    saveChecklistAction({ action: "toggleWeekly", id, done: !task.done });
   };
 
   return (
@@ -110,6 +126,29 @@ export default function Checklist() {
       <p className="muted task-info">
         {tasks.filter(t => t.done).length} of {tasks.length} tasks done{dateKey ? ` for ${dateKey}` : ""}
       </p>
+
+      <section className="weekly-checklist">
+        <h2>Weekly Checklist</h2>
+        <p className="muted task-info">
+          {weeklyTasks.filter(t => t.done).length} of {weeklyTasks.length} weekly tasks done
+          {weekStart && weekEnd ? ` for ${weekStart} to ${weekEnd}` : ""}
+        </p>
+        <div className="task-list">
+          {weeklyTasks.map(task => (
+            <label key={task.id} className={"task-item" + (task.done ? " done" : "")}>
+              <input
+                className="task-checkbox"
+                type="checkbox"
+                checked={task.done}
+                disabled={saving}
+                onChange={() => toggleWeekly(task.id)}
+              />
+              <span className="task-label">{task.label}</span>
+            </label>
+          ))}
+        </div>
+        {weeklyDone && <p className="bonus-banner">Weekly checklist complete.</p>}
+      </section>
     </main>
   );
 }

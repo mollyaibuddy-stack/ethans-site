@@ -20,6 +20,13 @@ test("daily checklist checkbox is sized for touch", () => {
   assert.match(cssSource, /\.task-checkbox\s*{[\s\S]*height:\s*32px;/);
 });
 
+test("checklist page includes the weekly checklist condition", () => {
+  assert.match(checklistSource, /Weekly Checklist/);
+  assert.match(checklistSource, /weeklyTasks/);
+  assert.match(checklistSource, /DEFAULT_WEEKLY_TASKS/);
+  assert.match(checklistSource, /action: "toggleWeekly"/);
+});
+
 test("page editor is the place to add checklist tasks", () => {
   assert.match(editorSource, /const \[checklistTasks, setChecklistTasks\]/);
   assert.match(editorSource, /addChecklistTask/);

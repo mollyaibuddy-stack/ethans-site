@@ -2,10 +2,12 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  DEFAULT_WEEKLY_TASKS,
   awardChecklistBonus,
   calculateWeeklyMultiplierAmount,
   createMoneyEntry,
   isWeeklyChecklistMultiplierUnlocked,
+  isWeeklyMultiplierEligible,
   todayKey,
   weekRangeForDateKey,
   WEEKLY_CHECKLIST_TARGET,
@@ -62,6 +64,12 @@ test("formats Melbourne dates as yyyy-mm-dd keys", () => {
   assert.equal(todayKey(date), "2026-06-09");
 });
 
+test("uses Reading Journal as the first weekly checklist item", () => {
+  assert.deepEqual(DEFAULT_WEEKLY_TASKS, [
+    { id: "reading-journal", label: "Reading Journal", done: false },
+  ]);
+});
+
 test("uses Monday to Sunday ranges for weekly checklist multipliers", () => {
   assert.deepEqual(weekRangeForDateKey("2026-06-14"), {
     start: "2026-06-08",
@@ -86,6 +94,25 @@ test("unlocks the weekly multiplier after five checklist completion dates in one
   assert.equal(isWeeklyChecklistMultiplierUnlocked(completedDates, "2026-06-08"), true);
   assert.equal(isWeeklyChecklistMultiplierUnlocked(completedDates.slice(0, 4), "2026-06-08"), false);
   assert.equal(isWeeklyChecklistMultiplierUnlocked([...completedDates.slice(0, 4), "2026-06-15"], "2026-06-08"), false);
+});
+
+test("requires the weekly checklist before the weekly multiplier is eligible", () => {
+  const completedDates = [
+    "2026-06-08",
+    "2026-06-09",
+    "2026-06-10",
+    "2026-06-11",
+    "2026-06-12",
+  ];
+
+  assert.equal(
+    isWeeklyMultiplierEligible(completedDates, [{ id: "reading-journal", label: "Reading Journal", done: false }], "2026-06-08"),
+    false,
+  );
+  assert.equal(
+    isWeeklyMultiplierEligible(completedDates, [{ id: "reading-journal", label: "Reading Journal", done: true }], "2026-06-08"),
+    true,
+  );
 });
 
 test("calculates the weekly multiplier from income only without compounding itself", () => {

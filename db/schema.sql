@@ -24,6 +24,22 @@ CREATE TABLE IF NOT EXISTS checklist_completions (
   PRIMARY KEY (task_id, completion_date)
 );
 
+CREATE TABLE IF NOT EXISTS weekly_checklist_tasks (
+  id TEXT PRIMARY KEY,
+  label TEXT NOT NULL,
+  position INTEGER NOT NULL,
+  active BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS weekly_checklist_completions (
+  task_id TEXT NOT NULL REFERENCES weekly_checklist_tasks(id) ON DELETE CASCADE,
+  week_start DATE NOT NULL,
+  done BOOLEAN NOT NULL DEFAULT TRUE,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (task_id, week_start)
+);
+
 CREATE TABLE IF NOT EXISTS checklist_bonus_awards (
   award_date DATE PRIMARY KEY,
   money_entry_id TEXT,
