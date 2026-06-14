@@ -5,6 +5,8 @@ REPO_DIR="/Users/openclawbuddy/Documents/Codex/Ethan website/ethans-site-repo"
 LOG_DIR="$REPO_DIR/logs"
 LOG_FILE="$LOG_DIR/playhq-update.log"
 
+export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
+
 mkdir -p "$LOG_DIR"
 exec >> "$LOG_FILE" 2>&1
 
