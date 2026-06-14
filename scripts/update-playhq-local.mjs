@@ -49,11 +49,44 @@ async function maybeAcceptGoogleConsent(page) {
   }
 }
 
+async function humanPause(minMs = 800, maxMs = 2200) {
+  const duration = minMs + Math.floor(Math.random() * (maxMs - minMs));
+  await new Promise(resolve => setTimeout(resolve, duration));
+}
+
+async function isGoogleCaptchaPage(page) {
+  const text = await page.locator("body").textContent({ timeout: 3000 }).catch(() => "");
+  return /unusual traffic|sorry|captcha/i.test(text || "");
+}
+
 async function discoverProfileUrl(page) {
-  const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(SEARCH_QUERY)}`;
-  await page.goto(searchUrl, { waitUntil: "domcontentloaded", timeout: 45000 });
+  await page.goto("https://www.google.com/?hl=en", { waitUntil: "domcontentloaded", timeout: 45000 });
   await maybeAcceptGoogleConsent(page);
-  await page.waitForTimeout(2500);
+  await humanPause();
+
+  if (await isGoogleCaptchaPage(page)) {
+    console.log("Google showed a CAPTCHA before search; using validated fallback URL.");
+    return FALLBACK_PROFILE_URL;
+  }
+
+  const searchBox = page.locator("textarea[name='q'], input[name='q']").first();
+  if (!await searchBox.isVisible({ timeout: 5000 }).catch(() => false)) {
+    console.log("Could not find Google search box; using validated fallback URL.");
+    return FALLBACK_PROFILE_URL;
+  }
+
+  await searchBox.click();
+  await humanPause(400, 900);
+  await searchBox.pressSequentially(SEARCH_QUERY, { delay: 140 });
+  await humanPause(900, 1800);
+  await page.keyboard.press("Enter");
+  await page.waitForLoadState("domcontentloaded", { timeout: 45000 }).catch(() => {});
+  await humanPause(3500, 6500);
+
+  if (await isGoogleCaptchaPage(page)) {
+    console.log("Google showed a CAPTCHA after manual-style search; using validated fallback URL.");
+    return FALLBACK_PROFILE_URL;
+  }
 
   const results = await page.evaluate(() => Array.from(document.querySelectorAll("a")).map(anchor => {
     const heading = anchor.querySelector("h3");
