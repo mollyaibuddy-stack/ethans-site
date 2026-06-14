@@ -26,8 +26,16 @@ export async function POST(request: NextRequest) {
       return store.addChecklistTask(body.label);
     }
 
+    if (body.action === "addWeekly") {
+      return store.addWeeklyChecklistTask(body.label);
+    }
+
     if (body.action === "remove") {
       return store.removeChecklistTask(body.id);
+    }
+
+    if (body.action === "removeWeekly") {
+      return store.removeWeeklyChecklistTask(body.id);
     }
 
     throw new Error("Unknown checklist action.");

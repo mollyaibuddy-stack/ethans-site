@@ -14,6 +14,7 @@ import {
 
 const privateStoreSource = fs.readFileSync(new URL("../lib/private-store.mjs", import.meta.url), "utf8");
 const schemaSource = fs.readFileSync(new URL("../db/schema.sql", import.meta.url), "utf8");
+const checklistRouteSource = fs.readFileSync(new URL("../app/api/private/checklist/route.ts", import.meta.url), "utf8");
 
 test("converts money amounts to integer cents for database storage", () => {
   assert.equal(amountToCents("20"), 2000);
@@ -94,6 +95,10 @@ test("private schema includes weekly checklist multiplier storage", () => {
   assert.match(privateStoreSource, /WEEKLY_MULTIPLIER_SOURCE/);
   assert.match(privateStoreSource, /DEFAULT_WEEKLY_TASKS/);
   assert.match(privateStoreSource, /setWeeklyChecklistTaskDone/);
+  assert.match(privateStoreSource, /addWeeklyChecklistTask/);
+  assert.match(privateStoreSource, /removeWeeklyChecklistTask/);
+  assert.match(checklistRouteSource, /body\.action === "addWeekly"/);
+  assert.match(checklistRouteSource, /body\.action === "removeWeekly"/);
   assert.match(privateStoreSource, /await maybeAwardWeeklyIncomeMultiplier\(date\);/);
   assert.match(privateStoreSource, /await maybeAwardWeeklyIncomeMultiplier\(dateKey\);/);
 });

@@ -33,3 +33,14 @@ test("page editor is the place to add checklist tasks", () => {
   assert.match(editorSource, /Remove Task/);
   assert.match(editorSource, /fetch\("\/api\/private\/checklist"/);
 });
+
+test("page editor can manage weekly checklist tasks", () => {
+  assert.match(editorSource, /const \[weeklyChecklistTasks, setWeeklyChecklistTasks\]/);
+  assert.match(editorSource, /const \[newWeeklyChecklistTask, setNewWeeklyChecklistTask\]/);
+  assert.match(editorSource, /Weekly Checklist Tasks/);
+  assert.match(editorSource, /Manage weekly checklist tasks here/);
+  assert.match(editorSource, /addWeeklyChecklistTask/);
+  assert.match(editorSource, /removeWeeklyChecklistTask/);
+  assert.match(editorSource, /action: "addWeekly"/);
+  assert.match(editorSource, /action: "removeWeekly"/);
+});

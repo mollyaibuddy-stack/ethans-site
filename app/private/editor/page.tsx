@@ -53,7 +53,9 @@ export default function Editor() {
     blog: [],
   });
   const [checklistTasks, setChecklistTasks] = useState<Task[]>([]);
+  const [weeklyChecklistTasks, setWeeklyChecklistTasks] = useState<Task[]>([]);
   const [newChecklistTask, setNewChecklistTask] = useState("");
+  const [newWeeklyChecklistTask, setNewWeeklyChecklistTask] = useState("");
   const [savingPage, setSavingPage] = useState("");
   const [savingChecklist, setSavingChecklist] = useState(false);
 
@@ -79,6 +81,7 @@ export default function Editor() {
             blog: parseEntryDraft(nextDrafts.blog),
           });
           setChecklistTasks(checklistData.tasks || []);
+          setWeeklyChecklistTasks(checklistData.weeklyTasks || []);
         }
       } catch (loadError) {
         if (!cancelled) {
@@ -176,6 +179,7 @@ export default function Editor() {
       if (!response.ok) throw new Error(data.error || "Could not save checklist.");
 
       setChecklistTasks(data.tasks || []);
+      setWeeklyChecklistTasks(data.weeklyTasks || []);
       setMessage("Checklist tasks saved.");
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : "Could not save checklist.");
@@ -194,6 +198,18 @@ export default function Editor() {
 
   const removeChecklistTask = (id: string) => {
     saveChecklistAction({ action: "remove", id });
+  };
+
+  const addWeeklyChecklistTask = (event: FormEvent) => {
+    event.preventDefault();
+    const label = newWeeklyChecklistTask.trim();
+    if (!label) return;
+    saveChecklistAction({ action: "addWeekly", label });
+    setNewWeeklyChecklistTask("");
+  };
+
+  const removeWeeklyChecklistTask = (id: string) => {
+    saveChecklistAction({ action: "removeWeekly", id });
   };
 
   return (
@@ -252,6 +268,42 @@ export default function Editor() {
             />
             <button type="submit" disabled={savingChecklist}>
               {savingChecklist ? "Saving..." : "Add Task"}
+            </button>
+          </form>
+        </div>
+
+        <div className="editor-card editor-card-wide">
+          <div className="editor-card-header">
+            <div>
+              <strong>Weekly Checklist Tasks</strong>
+              <p>Manage weekly checklist tasks here</p>
+            </div>
+          </div>
+
+          <div className="editor-task-list">
+            {weeklyChecklistTasks.map(task => (
+              <div key={task.id} className="editor-task-item">
+                <span>{task.label}</span>
+                <button
+                  type="button"
+                  onClick={() => removeWeeklyChecklistTask(task.id)}
+                  disabled={savingChecklist}
+                >
+                  Remove Task
+                </button>
+              </div>
+            ))}
+            {weeklyChecklistTasks.length === 0 && <p className="muted">No weekly checklist tasks yet.</p>}
+          </div>
+
+          <form onSubmit={addWeeklyChecklistTask} className="editor-task-form">
+            <input
+              value={newWeeklyChecklistTask}
+              onChange={event => setNewWeeklyChecklistTask(event.target.value)}
+              placeholder="New weekly checklist task"
+            />
+            <button type="submit" disabled={savingChecklist}>
+              {savingChecklist ? "Saving..." : "Add Weekly Task"}
             </button>
           </form>
         </div>
