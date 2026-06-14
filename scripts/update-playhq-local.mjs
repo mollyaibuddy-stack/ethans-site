@@ -9,16 +9,21 @@ import {
   selectPlayHqProfileSearchResult,
   validateEthanProfileText,
 } from "../lib/playhq-discovery.mjs";
+import {
+  defaultPlayHqConfigPath,
+  readPlayHqConfig,
+} from "../lib/playhq-config.mjs";
 import { parsePlayerStatsText } from "../lib/playhq-stats.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.join(__dirname, "..");
 
-const SEARCH_QUERY = "Ethan He playhq bulleen boomers";
+const localConfig = readPlayHqConfig(defaultPlayHqConfigPath(repoRoot));
+const SEARCH_QUERY = process.env.PLAYHQ_SEARCH_QUERY || localConfig.searchQuery;
 const TEAM_URL = process.env.PLAYHQ_TEAM_URL
-  || "https://www.playhq.com/basketball-victoria/org/bulleen-boomers-basketball-club/a8924dee/edjba-winter-2026/teams/bulleen-u13-boys-19/21d72c62";
+  || localConfig.teamUrl;
 const FALLBACK_PROFILE_URL = process.env.PLAYHQ_PROFILE_URL
-  || "https://www.playhq.com/public/profile/cc95e1dd-387b-47f3-b4f6-2887d65b7da5/statistics?tenant=basketball-victoria";
+  || localConfig.profileUrl;
 const profileDir = process.env.PLAYHQ_BROWSER_PROFILE_DIR
   || path.join(repoRoot, ".local", "playhq-browser-profile");
 const dryRun = process.argv.includes("--dry-run");

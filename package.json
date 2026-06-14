@@ -10,7 +10,9 @@
     "db:schema": "node scripts/apply-schema.mjs",
     "scrape:playhq": "node scripts/scrape-playhq.mjs",
     "playhq:update:local": "node scripts/update-playhq-local.mjs",
-    "playhq:install-agent": "zsh scripts/install-playhq-launch-agent.sh"
+    "playhq:install-agent": "zsh scripts/install-playhq-launch-agent.sh",
+    "playhq:control": "node scripts/playhq-control-server.mjs",
+    "playhq:install-control": "zsh scripts/install-playhq-control-agent.sh"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",

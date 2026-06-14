@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.ethan.playhq-control</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/bin/env</string>
+    <string>node</string>
+    <string>/Users/openclawbuddy/Documents/Codex/Ethan website/ethans-site-repo/scripts/playhq-control-server.mjs</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>/Users/openclawbuddy/Documents/Codex/Ethan website/ethans-site-repo</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    <key>PLAYHQ_CONTROL_HOST</key>
+    <string>127.0.0.1</string>
+    <key>PLAYHQ_CONTROL_PORT</key>
+    <string>8787</string>
+  </dict>
+
+  <key>StandardOutPath</key>
+  <string>/Users/openclawbuddy/Documents/Codex/Ethan website/ethans-site-repo/logs/playhq-control.out.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>/Users/openclawbuddy/Documents/Codex/Ethan website/ethans-site-repo/logs/playhq-control.err.log</string>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>KeepAlive</key>
+  <true/>
+</dict>
+</plist>
